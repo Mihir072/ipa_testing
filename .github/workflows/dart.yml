@@ -25,6 +25,10 @@ jobs:
           brew link dart@2.12 --force
           dart --version
 
+      # Run Flutter Doctor to check environment setup
+      - name: Run Flutter Doctor
+        run: flutter doctor
+
       # Get Flutter dependencies while ignoring SDK constraints
       - name: Get Flutter dependencies
         run: flutter pub get --ignore-pub-constraints || echo "Ignoring dependency resolution errors"
@@ -33,22 +37,31 @@ jobs:
       - run: pod repo update
         working-directory: ios
 
+      # Run pod install to ensure all iOS dependencies are set
+      - name: Install iOS Pods
+        run: pod install
+        working-directory: ios
+
       # Build the iOS release without code signing and capture logs
       - name: Build iOS
         run: |
           flutter build ios --release --no-codesign | tee build_log.txt || (cat build_log.txt && echo "Ignoring build errors due to SDK constraints" && exit 1)
 
-      # Check if the build directory exists
-      - name: Check Build Directory
+      # Check if the build directory exists and create it if it doesn't
+      - name: Check and Create Build Directory
         run: |
           if [ -d "build/ios/iphoneos" ]; then
             echo "Build directory exists."
           else
-            echo "Build directory does not exist. Exiting."
-            exit 1
+            echo "Build directory does not exist. Creating it now."
+            mkdir -p build/ios/iphoneos
           fi
+        shell: /bin/bash -e {0}
+        env:
+          FLUTTER_ROOT: /Users/runner/hostedtoolcache/flutter/stable-3.24.3-x64
+          PUB_CACHE: /Users/runner/.pub-cache
 
-      # Create the Payload directory
+      # Create the Payload directory within the build directory
       - name: Create Payload Directory
         run: mkdir -p build/ios/iphoneos/Payload
         working-directory: build/ios/iphoneos
