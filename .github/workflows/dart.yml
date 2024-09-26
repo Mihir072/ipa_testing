@@ -38,12 +38,22 @@ jobs:
         run: |
           flutter build ios --release --no-codesign || echo "Ignoring build errors due to SDK constraints"
 
+      # Check if the build directory exists before creating Payload
+      - name: Check Build Directory
+        run: |
+          if [ -d "build/ios/iphoneos" ]; then
+            echo "Build directory exists."
+          else
+            echo "Build directory does not exist. Exiting."
+            exit 1
+          fi
+
       # Create the Payload directory
-      - run: mkdir Payload
+      - run: mkdir -p build/ios/iphoneos/Payload
         working-directory: build/ios/iphoneos
 
       # Move the Runner.app to Payload directory
-      - run: mv Runner.app/ Payload
+      - run: mv Runner.app Payload
         working-directory: build/ios/iphoneos
 
       # Zip the output as FlutterIpaExport.ipa
