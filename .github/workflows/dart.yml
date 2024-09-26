@@ -10,28 +10,44 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # Set up Flutter stable channel with architecture x64
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           architecture: x64
+
+      # Install Dart 2.12.0
+      - name: Install Dart 2.12.0
+        run: |
+          brew tap dart-lang/dart
+          brew install dart@2.12
+          brew link dart@2.12 --force
+          dart --version
+      
+      # Get Flutter dependencies
       - run: flutter pub get
       
-
+      # Update CocoaPods repository
       - run: pod repo update
         working-directory: ios
 
+      # Build the iOS release without code signing
       - run: flutter build ios --release --no-codesign
 
+      # Create the Payload directory
       - run: mkdir Payload
         working-directory: build/ios/iphoneos
 
+      # Move the Runner.app to Payload directory
       - run: mv Runner.app/ Payload
         working-directory: build/ios/iphoneos
 
+      # Zip the output as FlutterIpaExport.ipa
       - name: Zip output
         run: zip -qq -r -9 FlutterIpaExport.ipa Payload
         working-directory: build/ios/iphoneos
 
+      # Upload binaries to release
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
