@@ -33,12 +33,12 @@ jobs:
       - run: pod repo update
         working-directory: ios
 
-      # Build the iOS release without code signing and ignore any SDK constraint errors
+      # Build the iOS release without code signing and capture logs
       - name: Build iOS
         run: |
-          flutter build ios --release --no-codesign || echo "Ignoring build errors due to SDK constraints"
+          flutter build ios --release --no-codesign | tee build_log.txt || (cat build_log.txt && echo "Ignoring build errors due to SDK constraints" && exit 1)
 
-      # Check if the build directory exists before creating Payload
+      # Check if the build directory exists
       - name: Check Build Directory
         run: |
           if [ -d "build/ios/iphoneos" ]; then
@@ -49,7 +49,8 @@ jobs:
           fi
 
       # Create the Payload directory
-      - run: mkdir -p build/ios/iphoneos/Payload
+      - name: Create Payload Directory
+        run: mkdir -p build/ios/iphoneos/Payload
         working-directory: build/ios/iphoneos
 
       # Move the Runner.app to Payload directory
