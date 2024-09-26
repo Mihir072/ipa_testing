@@ -25,13 +25,9 @@ jobs:
           brew link dart@2.12 --force
           dart --version
 
-      # Temporarily ignore progress_dialog dependency by removing it from pubspec.yaml
-      - name: Remove problematic dependencies
-        run: |
-          sed -i '' '/progress_dialog:/d' pubspec.yaml
-
-      # Get Flutter dependencies and ignore any errors related to progress_dialog
-      - run: flutter pub get || echo "Ignoring dependency errors"
+      # Get Flutter dependencies while ignoring SDK constraints
+      - name: Get Flutter dependencies
+        run: flutter pub get --ignore-pub-constraints || echo "Ignoring dependency resolution errors"
 
       # Update CocoaPods repository
       - run: pod repo update
